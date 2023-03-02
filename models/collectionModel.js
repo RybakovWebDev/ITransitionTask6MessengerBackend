@@ -11,7 +11,6 @@ const collectionsSchema = new Schema({
   customFields: { type: Array },
 });
 
-// Static add collection method
 collectionsSchema.statics.addCollection = async function (
   _id,
   name,

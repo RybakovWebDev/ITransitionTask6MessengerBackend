@@ -14,10 +14,10 @@ const userSchema = new Schema({
   },
   admin: { type: Boolean, required: true },
   likedItems: { type: Array },
+  status: { type: Boolean, required: true },
 });
 
-// Static signup method
-userSchema.statics.signup = async function (_id, email, name, password, admin, likedItems) {
+userSchema.statics.signup = async function (_id, email, name, password, admin, likedItems, status) {
   const exists = await this.findOne({ email });
 
   if (exists) {
@@ -27,12 +27,11 @@ userSchema.statics.signup = async function (_id, email, name, password, admin, l
   const salt = await bcrypt.genSalt(10);
   const hash = await bcrypt.hash(password, salt);
 
-  const user = await this.create({ _id, email, name, password: hash, admin, likedItems });
+  const user = await this.create({ _id, email, name, password: hash, admin, likedItems, status });
 
   return user;
 };
 
-// Static login method
 userSchema.statics.login = async function (email, password) {
   if (!email || !password) {
     throw Error("All fields must be filled");
@@ -48,6 +47,10 @@ userSchema.statics.login = async function (email, password) {
 
   if (!match) {
     throw Error("Incorrect password");
+  }
+
+  if (user.status === false) {
+    throw Error("User is blocked");
   }
 
   return user;

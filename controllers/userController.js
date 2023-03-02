@@ -5,14 +5,12 @@ const createToken = (_id) => {
   return jwt.sign({ _id: _id }, process.env.SECRET, { expiresIn: "3d" });
 };
 
-////// GET all users
 const getUsers = async (req, res) => {
   const users = await User.find({});
 
   res.status(200).json(users);
 };
 
-////// GET a single user
 const getUser = async (req, res) => {
   const { id } = req.params;
 
@@ -24,29 +22,31 @@ const getUser = async (req, res) => {
   res.status(200).json(user);
 };
 
-////// LOGIN user
 const loginUser = async (req, res) => {
   const { email, password } = req.body;
 
   try {
     const user = await User.login(email, password);
 
-    // Create a token
     const token = createToken(user._id);
 
-    res
-      .status(200)
-      .json({ _id: user.id, name: user.name, email, admin: user.admin, likedItems: user.likedItems, token });
+    res.status(200).json({
+      _id: user.id,
+      name: user.name,
+      email,
+      admin: user.admin,
+      likedItems: user.likedItems,
+      status: user.status,
+      token,
+    });
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
 };
 
-////// SIGNUP new user
 const createUser = async (req, res) => {
-  const { _id, email, name, password, admin, likedItems } = req.body;
+  const { _id, email, name, password, admin, likedItems, status } = req.body;
 
-  // Error Handling
   let emptyFields = [];
 
   if (!name) {
@@ -62,20 +62,17 @@ const createUser = async (req, res) => {
     return res.status(400).json({ error: "Please fill in all the fields", emptyFields });
   }
 
-  // add user to db
   try {
-    const user = await User.signup(_id, email, name, password, admin, likedItems);
+    const user = await User.signup(_id, email, name, password, admin, likedItems, status);
 
-    // Create a token
     const token = createToken(user._id);
 
-    res.status(200).json({ _id, email, name, admin, likedItems, token });
+    res.status(200).json({ _id, email, name, admin, likedItems, status, token });
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
 };
 
-////// DELETE a user
 const deleteUser = async (req, res) => {
   const { id } = req.params;
 
@@ -87,7 +84,6 @@ const deleteUser = async (req, res) => {
   res.status(200).json(user);
 };
 
-////// PATCH a user
 const patchUser = async (req, res) => {
   const { id } = req.params;
 
